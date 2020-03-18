@@ -10,8 +10,8 @@ import DateAnalytic from "../components/DateAnalytic";
 function getFoodImage(foodArray) {
   // 서버에서 이미지를 가져오는 부분
   let list = [
-    '/images/bob.jpeg', "/images/dubumuchim.jpg", "/images/gaeranmali.jpg", "/images/kimchi.jpg",
-    '/images/mulchi.jpg', "/images/musangchae.jpg", '/images/sigmchi.jpg'
+    '/images/0.jpeg', "/images/1.jpg", "/images/2.jpg", "/images/3.jpg",
+    '/images/4.jpg', "/images/5.jpg", '/images/6.jpg'
   ];
   return list;
 }

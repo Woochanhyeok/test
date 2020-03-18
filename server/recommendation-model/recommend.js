@@ -9,7 +9,7 @@ function runRecommendationModel(preferenceList, userNumber) {
 
   const options = {
     mode: 'text',
-    pythonPath: 'C:/Users/dncks/Anaconda3/envs/tf1/python',
+    pythonPath: '/opt/anaconda3/envs/tf1/bin/python3',
     pythonOptions: ['-u'],
     scriptPath: __dirname,
     args: [preferenceList, shape, userNumber]
@@ -20,10 +20,13 @@ function runRecommendationModel(preferenceList, userNumber) {
     PythonShell.run('recommend_test01.py',
       options, (err, result) => {
         if(err) reject(err);
+        if(result === undefined) reject(err);
 
-        // result.forEach(v => console.log(v));
+        console.log(result + '== result' );
+        //result.forEach(v => console.log(v));
         result.forEach(v => result_recommendation.push(Number(v)));
-        resolve(result_recommendation);
+         resolve(result_recommendation);
+        console.log(result_recommendation);
       });
   });
 }

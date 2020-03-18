@@ -1,18 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, {useEffect, useState} from "react";
 import './DateAnalytic.scss';
 
 // 사용자의 영양 권장량을 가져오는 함수
-function GetNutritionRecommended() {
-  var arr = [];
-  fetch('/getNutrition',{method: 'POST', body:JSON.stringify(),
-      headers:{
-        "Content-Type":"application/json",
-        "Accept":"application/json"
-      }})
-      .then(res => res.json())
-      .then(data => {
-        sessionStorage.setItem("recommended_nutrition",JSON.stringify(data));
+function getNutritionRecommended() {
+  const recommendedNutrition = sessionStorage.getItem('recommended_nutrition');
+
+  return recommendedNutrition === null
+    ? new Promise((resolve, reject) => {
+      fetch('/getNutrition', {
+        method: 'POST',
+        body: JSON.stringify(),
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        }
       })
+<<<<<<< HEAD
       arr = JSON.parse(sessionStorage.getItem("recommended_nutrition"));
       return [arr.권장열량,arr.권장탄수화물,arr.권장단백질,arr.권장지방,arr.권장당류,arr.권장나트륨,arr.권장콜레스테롤,arr.권장포화지방산,arr.권장트랜스지방산];
   }
@@ -22,27 +25,67 @@ function GetNutritionIntake() {
   var arr = [];
   fetch('/getIntake',{method: 'POST', body:JSON.stringify(),
       headers:{ 
+=======
+        .then(res => res.json())
+        .then(data => {
+          sessionStorage.setItem('recommended_nutrition', JSON.stringify(data));
+          resolve(Object.values(data));
+        })
+        .catch(error => reject(error));
+    })
+    : new Promise((resolve) => resolve(Object.values(JSON.parse(recommendedNutrition))));
+}
+
+// 사용자의 일일 영양 섭취량을 가져오는 함수
+function getNutritionIntake() {
+  return new Promise((resolve, reject) => {
+    fetch('/getIntake',{
+      method: 'POST',
+      body: JSON.stringify(),
+      headers:{
+>>>>>>> upstream/master
         "Content-Type":"application/json",
         "Accept":"application/json"
       }})
       .then(res => res.json())
-      .then(data => {
-        sessionStorage.setItem("intake_nutrition",JSON.stringify(data));
-      })
-      arr = JSON.parse(sessionStorage.getItem("intake_nutrition"));
-      return [arr.열량,arr.탄수화물,arr.단백질,arr.지방,arr.당류,arr.나트륨,arr.콜레스테롤,arr.포화지방산,arr.트랜스지방산];
+      .then(data => resolve(Object.values(data)))
+      .catch(err => reject(err));
+  });
 }
 
 function DateAnalytic() {
-  const recommended = GetNutritionRecommended();
-  const intake = GetNutritionIntake();
-  const ratio = recommended.map((arg, index) =>
-    arg !== 0 ? intake[index] / arg : 0
-  );
+  const [recommended, setRecommendation] = useState([]);
+  const [intake, setIntake] = useState([]);
+  const [ratio, setRatio] = useState([]);
+
   const nutritionList = [
-    'calorie', 'carbohydrate', 'protein', 'fat', 'sugar', 'salt', 'cholesterol',
-    'saturated-fat', 'trans-fat'
+    'calorie', 'carbohydrate', 'protein',
+    'fat', 'sugar', 'salt',
+    'cholesterol', 'saturated-fat', 'trans-fat'
   ];
+
+  useEffect( () => {
+    async function getData() {
+      try {
+        const data = await Promise.all([getNutritionRecommended(), getNutritionIntake()]);
+        console.log(data);
+        return data;
+      } catch(err) {
+        console.error(err);
+      }
+    }
+    getData()
+      .then((data) => {
+        setRecommendation(data[0]);
+        setIntake(data[1]);
+        setRatio(recommended.map((arg, index) =>
+          arg !== 0
+            ? intake[index] / arg
+            : 0
+        ))
+      })
+      .catch(err => console.error(err));
+  }, []);
 
   useEffect(() => {
     const getElementsStyle = (nutritionArray) => {

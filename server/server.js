@@ -1,25 +1,25 @@
-const  {recommend } = require("./recommendation-model/recommend");
 const express = require('express');
 const path = require('path');
 const os = require('os');
 const router = require('./routes/router');
 const db = require('./dbconnection');
+const { predictPreference } = require('./predictPreference');
 
 const app = express();
 app.use(express.json());
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 4002;
 
 app.use(express.static(path.join(__dirname,'..','public/')));
 
 
-app.post("/addUser",(req,res,next) =>{
-    const address = req.body.address;
-    const password = req.body.password;
-    const name = req.body.name;
-    const age = req.body.age;
-    const sex = req.body.sex;
+app.post("/addUser",(req,res,next) => {
+  const address = req.body.address;
+  const password = req.body.password;
+  const name = req.body.name;
+  const age = req.body.age;
+  const sex = req.body.sex;
 
-    db.query("Select * from user_information where user_id = \'" + address
+  db.query("Select * from user_information where user_id = \'" + address
     + '\' AND user_password = \'' + password + '\' AND user_name = \'' + name + '\'',
     (err, rows) => {
       //Check User
@@ -27,18 +27,18 @@ app.post("/addUser",(req,res,next) =>{
         console.log('AddUser error');
       else {
         if(rows.recordset[0] === undefined){
-            //New User Insert
-            db.query("register_user_information \'" + address + "\' \'" + password + "\' \'" + name + "\' \'" + age + "\' \'" + sex + "\'",
+          //New User Insert
+          db.query("register_user_information \'" + address + "\', \'" + password + "\' ,\'" + name + "\', \'" + age + "\', \'" + sex + "\'",
             (err,rows) =>{
-                if(err){
-                    console.log('insert error');
-                    console.log(address);
-                    console.log(password);
-                }
-                else {
-                    res.send({text : 'success'});
-                }
-             
+              if(err){
+                console.log('insert error');
+                console.log(address);
+                console.log(password + name + age + sex);
+              }
+              else {
+                res.send({text : 'success'});
+              }
+
             });
         }
         else {
@@ -55,7 +55,7 @@ app.post("/process/login", (req, res, next) => {
   const password = req.body.password;
   db.query("Select * from user_information where user_id = \'" + id + '\'' + 'AND user_password = \'' + password + '\'',
     (err,rows) => {
-      if(rows.recordset[0] ===undefined || err)
+      if(rows.recordset[0] === undefined || err)
         res.send({err:'error'});
       else {
         db.query("select * from user_preference", async (e,r) => {
@@ -65,8 +65,8 @@ app.post("/process/login", (req, res, next) => {
             let max_user_no = 0;
             let num = 0;
             //유저수 체크
-            while(true){
-              try{
+            while(true) {
+              try {
                 const a = r.recordset[num]['음식_0'];
                 num +=1;
               }
@@ -75,7 +75,7 @@ app.post("/process/login", (req, res, next) => {
                 break;
               }
             }
-            console.log(max_user_no);
+            console.log('max_user의 수 ' + max_user_no);
 
             const preference = Array(max_user_no).fill(null).map(() => Array());
             let i = 0;
@@ -94,6 +94,7 @@ app.post("/process/login", (req, res, next) => {
               }
             }
 
+<<<<<<< HEAD
             //선호도 모델 예측해서 변수에 담아놓은 부분
             let predicted_preference = await recommend(preference, 3);
             predicted_preference = predicted_preference.map((item, index) => {
@@ -103,6 +104,10 @@ app.post("/process/login", (req, res, next) => {
              }
             });
             console.log(predicted_preference);
+=======
+            // 선호도 모델 계산되고 정렬되어 반환됨.
+            await predictPreference(preference);
+>>>>>>> upstream/master
 
             res.send({user:rows.recordsets[0],
               pref:preference
@@ -114,19 +119,22 @@ app.post("/process/login", (req, res, next) => {
 });
 
 app.post("/hate",(req,res,next) => {
-  db.query("read_user_preference'" + 1 + "','" + 1 + "'",(err,rows) =>{
+  const user_id = req.body.user_id;
+  const food_no = req.body.food_id;
+  console.log(user_id+  '  ' + food_no)
+  db.query("change_user_preference'" + user_id + "','" + food_no + "' , '" + 0 + "'",(err,rows) =>{
     if(err)
       console.log('error');
     else {
+      //console.log('success for hate');
       res.send(rows.recordsets);
     }
   });
-  console.log('/hate route now sending file');
 
 });
-app.post("/getNutrition",(req,res,next) => {
+app.post("/getNutrition", (req,res,next) => {
 
-  db.query("read_user_nutrition'" +  1 + "'",(err,rows) =>{
+  db.query("read_user_nutrition'" +  1 + "'", (err,rows) => {
     if(err)
       console.log('error');
     else {
@@ -137,14 +145,14 @@ app.post("/getNutrition",(req,res,next) => {
 
 app.post("/getIntake",(req,res,next) => {
 
-  db.query("read_user_today_nutrition'" +  1 + "'",(err,rows) =>{
+  db.query("read_user_today_nutrition'" +  1 + "'", (err,rows) =>{
     if(err)
       console.log('error');
     else {
       res.send(rows.recordsets[0][0]);
     }
   });
-})
+});
 
 app.use("/",router);
 

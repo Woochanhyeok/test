@@ -8,9 +8,9 @@ import Home from "./routes/Home";
 import AddButton from "./components/AddButton";
 
 function App() {
-  
   const UserInfo = sessionStorage.getItem('info');
   const [isLogin, setLog] = useState(sessionStorage.getItem('isLogin'));
+
   useEffect(() => {
     //Login 검사 
     if(UserInfo){
@@ -26,20 +26,26 @@ function App() {
 
   return (
     <>
-      {isLogin ? (
-        <>
-          <Header />
-          <AddButton/>
-        </>
-      ) : null}
+      {isLogin
+        ? (
+          <>
+            <Header />
+            <AddButton />
+          </>
+        )
+        : null
+      }
       <Switch>
-        <Route exact path="/" render={
-          (props) => <Home {...props} isLogin={isLogin} />
-        } />
+        <Route
+          exact
+          path="/"
+          render={(props) => <Home {...props} isLogin={isLogin} />}
+        />
         <Route path="/SignUp" component={SignUp}/>
-        <Route path="/Login" render={
-          (props) => <Login {...props} setLog={setLog}/>
-        } />
+        <Route
+          path="/Login"
+          render={(props) => <Login {...props} setLog={setLog}/>}
+        />
       </Switch>
     </>
   );
